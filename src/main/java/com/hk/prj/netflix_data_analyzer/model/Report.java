@@ -1,11 +1,12 @@
 package com.hk.prj.netflix_data_analyzer.model;
 
 import java.util.List;
+import java.util.Map;
 
 public class Report{
     private List<String> files;
     private List<Device> devices;
-    private List<IPAddressStreaming> ipAddressStreamings;
+    private Map<String, List<IPAddressStreaming>> ipAddressStreamings;
 
     public Report(){}
 
@@ -25,11 +26,11 @@ public class Report{
         this.devices = devices;
     }
 
-    public List<IPAddressStreaming> getIpAddressStreamings() {
+    public Map<String, List<IPAddressStreaming>> getIpAddressStreamings() {
         return ipAddressStreamings;
     }
 
-    public void setIpAddressStreamings(List<IPAddressStreaming> ipAddressStreamings) {
+    public void setIpAddressStreamings(Map<String, List<IPAddressStreaming>> ipAddressStreamings) {
         this.ipAddressStreamings = ipAddressStreamings;
     }
 }

@@ -1,0 +1,34 @@
+<html xmlns:th="https://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout (~{::body},'upload')}">
+<body>
+<div class="container">
+    <h2>Hello User</h2>
+    <div>
+        <div>
+            <form
+                    id="uploadFile"
+                    method="post"
+                    th:action="@{/upload}"
+                    enctype="multipart/form-data">
+                <h3>Upload your zip file received from Netflix</h3>
+                <input id="input-file" type="file" name="file"/>
+                <button type="submit">
+                    Upload
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${message != null}"
+         class="alert alert-secondary alert-dismissible fade show text-center message mt-3"
+         role="alert">
+        [[${message}]]
+        <button type="button" class="close btn-sm" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">×</span>
+        </button>
+    </div>
+
+</div>
+</body>
+
+</html>

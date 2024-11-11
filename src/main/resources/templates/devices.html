@@ -1,0 +1,31 @@
+<html xmlns:th="https://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout (~{::body},'devices')}">
+<body>
+<div class="container">
+    <h3>Devices List</h3>
+    <div th:if="${devices.size() > 0}">
+        <table class="table table-hover">
+            <thead class="thead-light">
+            <tr>
+                <th scope="col">Profile</th>
+                <th scope="col">Device Type</th>
+                <th scope="col">Last Used</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="device : ${devices}">
+                <td>[[${device.profile}]]</td>
+                <td>[[${device.deviceType}]]</td>
+                <td>[[${device.lastUsedTime}]]</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:unless="${devices.size() > 0}">
+        <span>No Device found!</span>
+    </div>
+</div>
+</body>
+
+</html>
