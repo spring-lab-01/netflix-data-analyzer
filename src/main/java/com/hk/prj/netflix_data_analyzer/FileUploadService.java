@@ -67,7 +67,7 @@ public class FileUploadService {
         return new IPAddressStreaming(record[3], record[1], record[4], record[5], record[6], record[7]);
     }
 
-    private Map<String, List<IPAddressStreaming>> getIpAddressStreaming() {
+    Map<String, List<IPAddressStreaming>> getIpAddressStreaming() {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
             List<String> lines = Files.readAllLines(fs.getPath(Constants.IP_ADDRESS_STREAMING_PATH));
             return IntStream.range(1, lines.size())

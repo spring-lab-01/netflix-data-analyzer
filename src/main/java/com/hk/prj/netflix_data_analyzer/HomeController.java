@@ -54,6 +54,19 @@ public class HomeController {
         return "devices";
     }
 
+    @GetMapping("/streaming-devices")
+    public String getStreamingDevices(Model model) {
+        String message = "";
+        try {
+            model.addAttribute("streamingDevices", fileUploadService.getIpAddressStreaming());
+            model.addAttribute("message", message);
+        } catch (Exception e) {
+            message = "Could not get Devices. Error: " + e.getMessage();
+            model.addAttribute("message", message);
+        }
+        return "streaming-devices";
+    }
+
     @GetMapping("/files")
     public String getFiles(Model model) {
         String message = "";

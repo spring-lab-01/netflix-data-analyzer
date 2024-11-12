@@ -3,8 +3,8 @@
 <body>
 <div class="container">
         <h3>IP Details of Streaming Devices</h3>
-        <div th:if="${devices.size() > 0}">
-            <table class="table table-info">
+        <div th:if="${streamingDevices.size() > 0}">
+            <table class="table table-info" th:each="device : ${streamingDevices.keySet()}">
                 <thead class="thead-light">
                 <tr>
                     <th scope="col">Device</th>
@@ -16,7 +16,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="ipAddressStreaming : ${devices}">
+                <tr th:each="ipAddressStreaming : ${streamingDevices.get(device)}">
                     <td>[[${ipAddressStreaming.device}]]</td>
                     <td>[[${ipAddressStreaming.ipAddress}]]</td>
                     <td>[[${ipAddressStreaming.timestamp}]]</td>
@@ -28,7 +28,7 @@
             </table>
         </div>
 
-        <div th:unless="${devices.size() > 0}">
+        <div th:unless="${streamingDevices.size() > 0}">
             <span>No Device found!</span>
         </div>
 </div>
