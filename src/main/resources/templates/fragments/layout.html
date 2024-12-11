@@ -34,14 +34,14 @@
 
         <ul class="nav navbar-nav me-auto">
 
-          <li th:replace="~{::menuItem ('/','home','home page','home','Home')}">
-            <span class="fa fa-home" aria-hidden="true"></span>
+          <li th:replace="~{::menuItem ('/upload','upload', 'Upload File', 'upload', 'Upload')}">
+            <span class="fa fa-search" aria-hidden="true"></span>
             <span>Home</span>
           </li>
 
-          <li th:replace="~{::menuItem ('/upload','upload', 'Upload File', 'upload', 'Upload')}">
+          <li th:replace="~{::menuItem ('/watched-content','watched-content', 'Watched Content', 'watched-content', 'Watched Content')}">
             <span class="fa fa-search" aria-hidden="true"></span>
-            <span>Upload</span>
+            <span>Watched-Content</span>
           </li>
 
           <li th:replace="~{::menuItem ('/files','files', 'Files', 'files', 'Files')}">
@@ -59,11 +59,11 @@
             <span>Devices-IP Details</span>
           </li>
 
-          <li
-            th:replace="~{::menuItem ('/oups','error','trigger a RuntimeException to see how it is handled','exclamation-triangle','Error')}">
-            <span class="fa exclamation-triangle" aria-hidden="true"></span>
-            <span>Error</span>
-          </li>
+<!--          <li-->
+<!--            th:replace="~{::menuItem ('/oups','error','trigger a RuntimeException to see how it is handled','exclamation-triangle','Error')}">-->
+<!--            <span class="fa exclamation-triangle" aria-hidden="true"></span>-->
+<!--            <span>Error</span>-->
+<!--          </li>-->
 
         </ul>
       </div>

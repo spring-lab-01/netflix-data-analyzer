@@ -3,9 +3,11 @@ package com.hk.prj.netflix_data_analyzer;
 import com.hk.prj.netflix_data_analyzer.model.Device;
 import com.hk.prj.netflix_data_analyzer.model.IPAddressStreaming;
 import com.hk.prj.netflix_data_analyzer.model.Report;
+import com.hk.prj.netflix_data_analyzer.model.ViewedContent;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -16,7 +18,10 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -112,4 +117,30 @@ public class FileUploadService {
         }
     }
 
+    public Map<String, List<String>> getWatchedContent() {
+        try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
+            List<String> lines = Files.readAllLines(fs.getPath(Constants.VIEWED_CONTENT_PATH));
+            List<String> splitContent = Arrays.asList("episode", "limited series", "season");
+            return IntStream.range(1, lines.size())
+                    .mapToObj(index -> processViewedContentLine(lines.get(index)))
+                    .filter(v-> !StringUtils.hasLength(v.getVideoType()))
+                    .peek(v -> {
+                        if(splitContent.stream().anyMatch(x -> v.getTitle().toLowerCase().contains(x))) {
+                            String title = v.getTitle().split(":")[0];
+                            v.setTitle(title);
+                        }
+                    })
+                    .distinct()
+                    .sorted(Comparator.comparing(ViewedContent::getTitle))
+                    .collect(Collectors.groupingBy(ViewedContent::getProfile, Collectors.mapping(ViewedContent::getTitle, Collectors.toList())));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private ViewedContent processViewedContentLine(String line) {
+        String[] record = line.split(",");
+        return new ViewedContent(record[0], record[1], record[4], record[5]);
+    }
 }

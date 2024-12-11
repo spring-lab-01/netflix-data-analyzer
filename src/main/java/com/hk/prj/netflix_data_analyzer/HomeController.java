@@ -61,10 +61,23 @@ public class HomeController {
             model.addAttribute("streamingDevices", fileUploadService.getIpAddressStreaming());
             model.addAttribute("message", message);
         } catch (Exception e) {
-            message = "Could not get Devices. Error: " + e.getMessage();
+            message = "Could not get Streaming Devices. Error: " + e.getMessage();
             model.addAttribute("message", message);
         }
         return "streaming-devices";
+    }
+
+    @GetMapping("/watched-content")
+    public String getWatchedContent(Model model) {
+        String message = "";
+        try {
+            model.addAttribute("content", fileUploadService.getWatchedContent());
+            model.addAttribute("message", message);
+        } catch (Exception e) {
+            message = "Could not get Watched Content. Error: " + e.getMessage();
+            model.addAttribute("message", message);
+        }
+        return "watched-content";
     }
 
     @GetMapping("/files")

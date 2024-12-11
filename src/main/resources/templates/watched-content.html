@@ -1,0 +1,23 @@
+<html xmlns:th="https://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout (~{::body},'watched-content')}">
+<body>
+<div class="container">
+        <h3>Watched Content List - By Profile</h3>
+        <div th:if="${content.size() > 0}">
+            <table class="table table-info" th:each="profile : ${content.keySet()}">
+                Profile - [[${profile}]]
+                <tbody>
+                <tr th:each="item : ${content.get(profile)}">
+                    <td>[[${item}]]</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:unless="${content.size() > 0}">
+            <span>No Device found!</span>
+        </div>
+</div>
+</body>
+
+</html>
