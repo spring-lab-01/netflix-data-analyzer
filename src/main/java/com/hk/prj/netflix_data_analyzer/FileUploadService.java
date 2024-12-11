@@ -16,8 +16,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -50,6 +49,8 @@ public class FileUploadService {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
             List<String> lines = Files.readAllLines(fs.getPath(Constants.DEVICES_FILE_PATH));
             return IntStream.range(1, lines.size()).mapToObj(index -> processDeviceLine(lines.get(index)))
+                    .distinct()
+                    .sorted(Comparator.comparing(Device::getProfile).thenComparing(Device::getDeviceType).thenComparing(Device::getLastUsedTime))
                     .collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -59,7 +60,7 @@ public class FileUploadService {
 
     private Device processDeviceLine(String line) {
         String[] record = line.split(",");
-        return new Device(record[0], record[2], record[1], record[4]);
+        return new Device("", record[2].trim(), record[1].trim(), record[4].trim());
     }
 
     private IPAddressStreaming processIpAddressStreamingLine(String line) {
@@ -70,12 +71,23 @@ public class FileUploadService {
     Map<String, List<IPAddressStreaming>> getIpAddressStreaming() {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
             List<String> lines = Files.readAllLines(fs.getPath(Constants.IP_ADDRESS_STREAMING_PATH));
-            return IntStream.range(1, lines.size())
+            Map<String, List<IPAddressStreaming>> dataMap = IntStream.range(1, lines.size())
                     .mapToObj(index -> processIpAddressStreamingLine(lines.get(index)))
+                    .collect(Collectors.groupingBy(IPAddressStreaming::getDevice));
+            dataMap.values().forEach(x -> x.sort(Comparator.comparing(IPAddressStreaming::getIpAddress).thenComparing(IPAddressStreaming::getTimestamp)));
+            return dataMap.values().stream()
+                    .map(x -> x.stream().collect(Collectors.groupingBy(IPAddressStreaming::getIpAddress)).values().stream().map(this::findFirstInEachList).toList())
+                    .flatMap(List::stream)
+                    .sorted(Comparator.comparing(IPAddressStreaming::getIpAddress))
                     .collect(Collectors.groupingBy(IPAddressStreaming::getDevice));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private IPAddressStreaming findFirstInEachList(List<IPAddressStreaming> ipAddressStreamings) {
+        ipAddressStreamings.sort(Comparator.comparing(IPAddressStreaming::getTimestamp));
+        return ipAddressStreamings.get(0);
     }
 
     void saveFile(MultipartFile file, Path pathToZipFile) {

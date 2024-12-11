@@ -1,5 +1,7 @@
 package com.hk.prj.netflix_data_analyzer.model;
 
+import java.util.Objects;
+
 public class IPAddressStreaming {
     private String ipAddress;
     private String device;
@@ -62,5 +64,18 @@ public class IPAddressStreaming {
 
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        IPAddressStreaming that = (IPAddressStreaming) o;
+        return Objects.equals(ipAddress, that.ipAddress) && Objects.equals(device, that.device);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ipAddress, device);
     }
 }
