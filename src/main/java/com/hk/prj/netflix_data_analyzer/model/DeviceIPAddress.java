@@ -2,14 +2,15 @@ package com.hk.prj.netflix_data_analyzer.model;
 
 import java.util.Objects;
 
-public class IPAddressStreaming {
+public class DeviceIPAddress {
     private String ipAddress;
     private String device;
     private String country;
     private String region;
     private String location;
     private String timestamp;
-    public IPAddressStreaming(String ipAddress, String device, String country, String region, String location, String timestamp) {
+
+    public DeviceIPAddress(String ipAddress, String device, String country, String region, String location, String timestamp) {
         this.ipAddress = ipAddress;
         this.device = device;
         this.country = country;
@@ -70,7 +71,7 @@ public class IPAddressStreaming {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        IPAddressStreaming that = (IPAddressStreaming) o;
+        DeviceIPAddress that = (DeviceIPAddress) o;
         return Objects.equals(ipAddress, that.ipAddress) && Objects.equals(device, that.device);
     }
 

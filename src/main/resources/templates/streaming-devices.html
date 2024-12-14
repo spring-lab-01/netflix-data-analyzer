@@ -4,7 +4,7 @@
 <div class="container">
         <h3>IP Details of Streaming Devices</h3>
         <div th:if="${streamingDevices.size() > 0}">
-            <table class="table table-info" th:each="device : ${streamingDevices.keySet()}">
+            <table class="table table-primary" th:each="device : ${streamingDevices.keySet()}">
                 <thead class="thead-light">
                 <tr>
                     <th scope="col">Device</th>

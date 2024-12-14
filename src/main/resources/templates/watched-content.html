@@ -4,7 +4,7 @@
 <div class="container">
         <h3>Watched Content List - By Profile</h3>
         <div th:if="${content.size() > 0}">
-            <table class="table table-info" th:each="profile : ${content.keySet()}">
+            <table class="table table-primary" th:each="profile : ${content.keySet()}">
                 Profile - [[${profile}]]
                 <tbody>
                 <tr th:each="item : ${content.get(profile)}">

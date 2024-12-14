@@ -1,6 +1,7 @@
 # netflix-data-analyzer
-Netflix allowed you to request your personal information Netflix has on you.
-This tool provides a UI to upload that zip file, process that file and show sensible information from that file.
+This project provides a UI to upload zip file which is received from Netflix. 
+Once Uploaded, this application will analyze that file and show information in easy format.
+
 
 # About personal information zip file from Netflix
 Zip file of your personal information can be requested to Netflix from [here](https://www.netflix.com/account/getmyinfo)

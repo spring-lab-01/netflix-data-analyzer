@@ -34,9 +34,14 @@
 
         <ul class="nav navbar-nav me-auto">
 
-          <li th:replace="~{::menuItem ('/upload','upload', 'Upload File', 'upload', 'Upload')}">
+          <li th:replace="~{::menuItem ('/','home', 'Home', 'home', 'Home')}">
             <span class="fa fa-search" aria-hidden="true"></span>
             <span>Home</span>
+          </li>
+
+          <li th:replace="~{::menuItem ('/upload','upload', 'Upload File', 'upload', 'Upload')}">
+            <span class="fa fa-search" aria-hidden="true"></span>
+            <span>Upload</span>
           </li>
 
           <li th:replace="~{::menuItem ('/watched-content','watched-content', 'Watched Content', 'watched-content', 'Watched Content')}">
@@ -70,7 +75,7 @@
     </div>
   </nav>
   <div class="container-fluid">
-    <div class="container xd-container">
+    <div class="container">
 
       <th:block th:insert="${template}" />
 

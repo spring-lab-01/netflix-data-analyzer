@@ -2,15 +2,16 @@
       th:replace="~{fragments/layout :: layout (~{::body},'upload')}">
 <body>
 <div class="container">
-    <h2>Hello User</h2>
     <div>
-        <div>
+        Upload zip file which is received from Netflix.
+        Once Uploaded, this application will analyze that file and show information in easy format.
+        <br/>
+        <div class="container-lg">
             <form
                     id="uploadFile"
                     method="post"
                     th:action="@{/upload}"
                     enctype="multipart/form-data">
-                <h3>Upload your zip file received from Netflix</h3>
                 <input id="input-file" type="file" name="file"/>
                 <button type="submit">
                     Upload

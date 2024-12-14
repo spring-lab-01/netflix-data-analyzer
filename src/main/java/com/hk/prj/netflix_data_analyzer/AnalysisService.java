@@ -1,8 +1,7 @@
 package com.hk.prj.netflix_data_analyzer;
 
 import com.hk.prj.netflix_data_analyzer.model.Device;
-import com.hk.prj.netflix_data_analyzer.model.IPAddressStreaming;
-import com.hk.prj.netflix_data_analyzer.model.Report;
+import com.hk.prj.netflix_data_analyzer.model.DeviceIPAddress;
 import com.hk.prj.netflix_data_analyzer.model.ViewedContent;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,9 +26,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 @Service
-public class FileUploadService {
-
-    private Report report;
+public class AnalysisService {
 
     @Value("${upload.path}")
     private String uploadPath;
@@ -45,12 +42,12 @@ public class FileUploadService {
         }
     }
 
-    void upload(MultipartFile file) {
+    public void upload(MultipartFile file) {
         pathToZipFile = Path.of(uploadPath + File.separator + System.currentTimeMillis()+"_"+ file.getOriginalFilename());
         saveFile(file, pathToZipFile);
     }
 
-    List<Device> getDevices() {
+    public List<Device> getDevices() {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
             List<String> lines = Files.readAllLines(fs.getPath(Constants.DEVICES_FILE_PATH));
             return IntStream.range(1, lines.size()).mapToObj(index -> processDeviceLine(lines.get(index)))
@@ -65,33 +62,33 @@ public class FileUploadService {
 
     private Device processDeviceLine(String line) {
         String[] record = line.split(",");
-        return new Device("", record[2].trim(), record[1].trim(), record[4].trim());
+        return new Device("", record[2].trim(), record[4].trim());
     }
 
-    private IPAddressStreaming processIpAddressStreamingLine(String line) {
+    private DeviceIPAddress processIpAddressStreamingLine(String line) {
         String[] record = line.split(",");
-        return new IPAddressStreaming(record[3], record[1], record[4], record[5], record[6], record[7]);
+        return new DeviceIPAddress(record[3], record[1], record[4], record[5], record[6], record[7]);
     }
 
-    Map<String, List<IPAddressStreaming>> getIpAddressStreaming() {
+    public Map<String, List<DeviceIPAddress>> getIpAddressStreaming() {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
             List<String> lines = Files.readAllLines(fs.getPath(Constants.IP_ADDRESS_STREAMING_PATH));
-            Map<String, List<IPAddressStreaming>> dataMap = IntStream.range(1, lines.size())
+            Map<String, List<DeviceIPAddress>> dataMap = IntStream.range(1, lines.size())
                     .mapToObj(index -> processIpAddressStreamingLine(lines.get(index)))
-                    .collect(Collectors.groupingBy(IPAddressStreaming::getDevice));
-            dataMap.values().forEach(x -> x.sort(Comparator.comparing(IPAddressStreaming::getIpAddress).thenComparing(IPAddressStreaming::getTimestamp)));
+                    .collect(Collectors.groupingBy(DeviceIPAddress::getDevice));
+            dataMap.values().forEach(x -> x.sort(Comparator.comparing(DeviceIPAddress::getIpAddress).thenComparing(DeviceIPAddress::getTimestamp)));
             return dataMap.values().stream()
-                    .map(x -> x.stream().collect(Collectors.groupingBy(IPAddressStreaming::getIpAddress)).values().stream().map(this::findFirstInEachList).toList())
+                    .map(x -> x.stream().collect(Collectors.groupingBy(DeviceIPAddress::getIpAddress)).values().stream().map(this::findFirstInEachList).toList())
                     .flatMap(List::stream)
-                    .sorted(Comparator.comparing(IPAddressStreaming::getIpAddress))
-                    .collect(Collectors.groupingBy(IPAddressStreaming::getDevice));
+                    .sorted(Comparator.comparing(DeviceIPAddress::getIpAddress))
+                    .collect(Collectors.groupingBy(DeviceIPAddress::getDevice));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private IPAddressStreaming findFirstInEachList(List<IPAddressStreaming> ipAddressStreamings) {
-        ipAddressStreamings.sort(Comparator.comparing(IPAddressStreaming::getTimestamp));
+    private DeviceIPAddress findFirstInEachList(List<DeviceIPAddress> ipAddressStreamings) {
+        ipAddressStreamings.sort(Comparator.comparing(DeviceIPAddress::getTimestamp));
         return ipAddressStreamings.get(0);
     }
 
@@ -105,7 +102,7 @@ public class FileUploadService {
         }
     }
 
-    List<String> getFiles() {
+    public List<String> getFiles() {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
             try (Stream<Path> entries = Files.walk(fs.getPath("/"))) {
                 List<Path> filesInZip = entries.filter(Files::isRegularFile).toList();
