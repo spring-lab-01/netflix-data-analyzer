@@ -1,35 +1,29 @@
 package com.hk.prj.netflix_data_analyzer.model;
 
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class ViewedContent {
     private String profile;
-    private String startTime;
+    private final String startTime;
+    private final Duration duration;
     private String title;
     private String videoType;
+    private String year;
 
-    public ViewedContent(String profile, String startTime, String title, String videoType) {
+    public ViewedContent(String profile, String startTime, Duration duration, String title, String videoType, String year) {
         this.profile = profile;
         this.startTime = startTime;
+        this.duration = duration;
         this.title = title;
         this.videoType = videoType;
+        this.year = year;
     }
 
     public String getProfile() {
         return profile;
-    }
-
-    public void setProfile(String profile) {
-        this.profile = profile;
-    }
-
-    public String getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
     }
 
     public String getTitle() {
@@ -44,8 +38,12 @@ public class ViewedContent {
         return videoType;
     }
 
-    public void setVideoType(String videoType) {
-        this.videoType = videoType;
+    public String getYear() {
+        return year;
+    }
+
+    public Duration getDuration() {
+        return duration;
     }
 
     @Override

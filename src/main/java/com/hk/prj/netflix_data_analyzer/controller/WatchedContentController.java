@@ -18,7 +18,7 @@ public class WatchedContentController {
     public String getWatchedContent(Model model) {
         String message = "";
         try {
-            model.addAttribute("content", fileUploadService.getWatchedContent());
+            model.addAttribute("content", fileUploadService.getWatchedContentMap());
             model.addAttribute("message", message);
         } catch (Exception e) {
             message = "Could not get Watched Content. Error: " + e.getMessage();
