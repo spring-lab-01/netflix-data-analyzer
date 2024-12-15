@@ -1,9 +1,6 @@
 package com.hk.prj.netflix_data_analyzer;
 
-import com.hk.prj.netflix_data_analyzer.model.AccountDetail;
-import com.hk.prj.netflix_data_analyzer.model.Device;
-import com.hk.prj.netflix_data_analyzer.model.DeviceIPAddress;
-import com.hk.prj.netflix_data_analyzer.model.ViewedContent;
+import com.hk.prj.netflix_data_analyzer.model.*;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.NestedExceptionUtils;
@@ -137,7 +134,29 @@ public class AnalysisService {
             e.printStackTrace();
             return Collections.emptyMap();
         }
+    }
 
+    public String getPaymentDetails() {
+        try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
+            List<String> lines = Files.readAllLines(fs.getPath(Constants.PAYMENTS_PATH));
+            List<PaymentDetail> paymentDetails = IntStream.range(1, lines.size())
+                    .mapToObj(index -> processPaymentDetailLine(lines.get(index))).toList();
+            Double totalSpent = paymentDetails.stream()
+                    .filter(v-> StringUtils.hasLength(v.getPriceAmt()))
+                    .filter(v-> v.getTxnType().contains("SALE") || v.getTxnType().contains("CAPTURE"))
+                    .filter(v-> v.getPmtStatus().contains("APPROVED") && v.getFinalInvoiceResult().contains("SETTLED"))
+                    .map(v-> Double.valueOf(v.getGrossSaleAmt().replace("\"","")))
+                    .reduce(Double::sum).orElse(0.0);
+           return String.format("%.2f%s", totalSpent, paymentDetails.get(0).getCurrency());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "0.0";
+        }
+    }
+
+    private PaymentDetail processPaymentDetailLine(String line) {
+        String[] record = line.split(",");
+        return new PaymentDetail(record[0], record[8], record[9], record[10], record[11], record[12], record[13], record[14]);
     }
 
     private ViewedContent processViewedContentLine(String line) {

@@ -36,7 +36,7 @@
     </div>
 
     <div th:if="${accountDetail != null}"
-         class="p-3 mb-2 bg-dark text-white"
+         class="p-3 mb-2"
          role="alert">
         <h3>Account Detail</h3>
         Name: <label th:text='${accountDetail.firstName}'/> <label th:text='${accountDetail.lastName}'/>
@@ -44,9 +44,35 @@
         Email: <label th:text='${accountDetail.email}'></label>
     </div>
 
+    <div th:if='${paymentDetails !="0.0"}'
+         class="p-3 mb-2"
+         role="alert">
+        <h3>Total Spent in 2024</h3> <label th:text='${paymentDetails}'/>
+    </div>
+
     <div class="container">
-        <h3>Devices List</h3>
+        <div th:if="${content.size() > 0}">
+            <h3>Watched Content - By Profile</h3>
+            <table class="table table-hover">
+                <thead class="thead-light">
+                <tr>
+                    <th scope="col">Profile</th>
+                    <th scope="col">Content Watched</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="profile : ${content.keySet()}">
+                    <td>[[${profile}]]</td>
+                    <td>[[${content.get(profile).size()}]]</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="container">
         <div th:if="${devices.size() > 0}">
+            <h3>Devices</h3>
             <table class="table table-hover">
                 <thead class="thead-light">
                 <tr>
@@ -63,10 +89,6 @@
                 </tr>
                 </tbody>
             </table>
-        </div>
-
-        <div th:unless="${devices.size() > 0}">
-            <span>No Device found!</span>
         </div>
     </div>
 
