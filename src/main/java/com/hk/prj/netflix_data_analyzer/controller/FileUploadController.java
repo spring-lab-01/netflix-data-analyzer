@@ -21,6 +21,8 @@ public class FileUploadController {
     @GetMapping
     public ModelAndView getHome(){
         ModelAndView modelAndView = new ModelAndView("index") ;
+
+
         modelAndView.getModel().put("files", analysisService.getFiles());
         modelAndView.getModel().put("accountDetail", analysisService.getAccountDetail());
         modelAndView.getModel().put("devices", analysisService.getDevices());
@@ -33,8 +35,10 @@ public class FileUploadController {
         try {
             analysisService.upload(file);
             model.addAttribute("file", file.getOriginalFilename());
-            model.addAttribute("accountDetail", analysisService.getAccountDetail());
             model.addAttribute("files", analysisService.getFiles());
+            model.addAttribute("accountDetail", analysisService.getAccountDetail());
+            model.addAttribute("devices", analysisService.getDevices());
+
             message = "Uploaded the file successfully: " + file.getOriginalFilename();
             model.addAttribute("message", message);
         } catch (Exception e) {

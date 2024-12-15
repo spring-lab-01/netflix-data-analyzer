@@ -6,6 +6,7 @@ import com.hk.prj.netflix_data_analyzer.model.DeviceIPAddress;
 import com.hk.prj.netflix_data_analyzer.model.ViewedContent;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.NestedExceptionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,10 +19,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -56,8 +54,9 @@ public class AnalysisService {
                     .filter(d-> StringUtils.hasLength(d.getLastUsedTime()))
                     .sorted(Comparator.comparing(Device::getProfile).thenComparing(Device::getDeviceType).thenComparing(Device::getLastUsedTime))
                     .collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
         }
 
     }
@@ -84,8 +83,9 @@ public class AnalysisService {
                     .flatMap(List::stream)
                     .sorted(Comparator.comparing(DeviceIPAddress::getIpAddress))
                     .collect(Collectors.groupingBy(DeviceIPAddress::getDevice));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyMap();
         }
     }
 
@@ -111,8 +111,9 @@ public class AnalysisService {
                 return filesInZip.stream().map(Path::toString).collect(Collectors.toList());
             }
         }
-        catch (IOException e) {
-            throw new RuntimeException(e);
+        catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
         }
     }
 
@@ -132,8 +133,9 @@ public class AnalysisService {
                     .distinct()
                     .sorted(Comparator.comparing(ViewedContent::getTitle))
                     .collect(Collectors.groupingBy(ViewedContent::getProfile, Collectors.mapping(ViewedContent::getTitle, Collectors.toList())));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyMap();
         }
 
     }
@@ -149,8 +151,9 @@ public class AnalysisService {
                     .replace("\"", "").split(",");
 
             return new AccountDetail(recordArray[0], recordArray[1], recordArray[2]);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }
