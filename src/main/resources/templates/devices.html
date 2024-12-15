@@ -26,6 +26,37 @@
         <span>No Device found!</span>
     </div>
 </div>
+<div class="container">
+    <h3>IP Details of Streaming Devices</h3>
+    <div th:if="${streamingDevices.size() > 0}">
+        <table class="table table-primary" th:each="device : ${streamingDevices.keySet()}">
+            <thead class="thead-light">
+            <tr>
+                <th scope="col">Device</th>
+                <th scope="col">IP Address</th>
+                <th scope="col">Timestamp</th>
+                <th scope="col">Country</th>
+                <th scope="col">Region</th>
+                <th scope="col">Location</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="ipAddressStreaming : ${streamingDevices.get(device)}">
+                <td>[[${ipAddressStreaming.device}]]</td>
+                <td>[[${ipAddressStreaming.ipAddress}]]</td>
+                <td>[[${ipAddressStreaming.timestamp}]]</td>
+                <td>[[${ipAddressStreaming.country}]]</td>
+                <td>[[${ipAddressStreaming.region}]]</td>
+                <td>[[${ipAddressStreaming.location}]]</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:unless="${streamingDevices.size() > 0}">
+        <span>No Device found!</span>
+    </div>
+</div>
 </body>
 
 </html>

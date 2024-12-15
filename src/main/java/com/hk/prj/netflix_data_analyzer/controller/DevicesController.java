@@ -19,6 +19,7 @@ public class DevicesController {
         String message = "";
         try {
             model.addAttribute("devices", analysisService.getDevices());
+            model.addAttribute("streamingDevices", analysisService.getIpAddressStreaming());
             model.addAttribute("message", message);
         } catch (Exception e) {
             message = "Could not get Devices. Error: " + e.getMessage();
@@ -26,20 +27,6 @@ public class DevicesController {
         }
         return "devices";
     }
-
-    @GetMapping("/streaming-devices")
-    public String getStreamingDevices(Model model) {
-        String message = "";
-        try {
-            model.addAttribute("streamingDevices", analysisService.getIpAddressStreaming());
-            model.addAttribute("message", message);
-        } catch (Exception e) {
-            message = "Could not get Streaming Devices. Error: " + e.getMessage();
-            model.addAttribute("message", message);
-        }
-        return "streaming-devices";
-    }
-
 
 }
 

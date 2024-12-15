@@ -1,5 +1,6 @@
 package com.hk.prj.netflix_data_analyzer;
 
+import com.hk.prj.netflix_data_analyzer.model.AccountDetail;
 import com.hk.prj.netflix_data_analyzer.model.Device;
 import com.hk.prj.netflix_data_analyzer.model.DeviceIPAddress;
 import com.hk.prj.netflix_data_analyzer.model.ViewedContent;
@@ -52,6 +53,7 @@ public class AnalysisService {
             List<String> lines = Files.readAllLines(fs.getPath(Constants.DEVICES_FILE_PATH));
             return IntStream.range(1, lines.size()).mapToObj(index -> processDeviceLine(lines.get(index)))
                     .distinct()
+                    .filter(d-> StringUtils.hasLength(d.getLastUsedTime()))
                     .sorted(Comparator.comparing(Device::getProfile).thenComparing(Device::getDeviceType).thenComparing(Device::getLastUsedTime))
                     .collect(Collectors.toList());
         } catch (IOException e) {
@@ -139,5 +141,16 @@ public class AnalysisService {
     private ViewedContent processViewedContentLine(String line) {
         String[] record = line.split(",");
         return new ViewedContent(record[0], record[1], record[4], record[5]);
+    }
+
+    public AccountDetail getAccountDetail() {
+        try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
+            String[] recordArray = Files.readAllLines(fs.getPath(Constants.ACCOUNT_DETAILS_PATH)).get(1)
+                    .replace("\"", "").split(",");
+
+            return new AccountDetail(recordArray[0], recordArray[1], recordArray[2]);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

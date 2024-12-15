@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 public class FileUploadController {
@@ -17,9 +18,13 @@ public class FileUploadController {
         this.analysisService = fileUploadService;
     }
 
-    @GetMapping("/upload")
-    public String getUpload(){
-        return "upload";
+    @GetMapping
+    public ModelAndView getHome(){
+        ModelAndView modelAndView = new ModelAndView("index") ;
+        modelAndView.getModel().put("files", analysisService.getFiles());
+        modelAndView.getModel().put("accountDetail", analysisService.getAccountDetail());
+        modelAndView.getModel().put("devices", analysisService.getDevices());
+        return modelAndView;
     }
 
     @PostMapping("/upload")
@@ -28,28 +33,16 @@ public class FileUploadController {
         try {
             analysisService.upload(file);
             model.addAttribute("file", file.getOriginalFilename());
+            model.addAttribute("accountDetail", analysisService.getAccountDetail());
+            model.addAttribute("files", analysisService.getFiles());
             message = "Uploaded the file successfully: " + file.getOriginalFilename();
             model.addAttribute("message", message);
         } catch (Exception e) {
             message = "Could not upload the file: " + file.getOriginalFilename() + ". Error: " + e.getMessage();
             model.addAttribute("message", message);
         }
-        return "upload";
+        return "index";
     }
-
-    @GetMapping("/files")
-    public String getFiles(Model model) {
-        String message = "";
-        try {
-            model.addAttribute("files", analysisService.getFiles());
-            model.addAttribute("message", message);
-        } catch (Exception e) {
-            message = "Could not get Devices. Error: " + e.getMessage();
-            model.addAttribute("message", message);
-        }
-        return "files";
-    }
-
 
 }
 

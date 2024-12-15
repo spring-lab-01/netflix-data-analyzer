@@ -19,7 +19,7 @@
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-navbar">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="collapse navbar-collapse" id="main-navbar" style>
+      <div class="container collapse navbar-collapse" id="main-navbar" style>
 
         <ul class="navbar-nav me-auto mb-2 mb-lg-0" th:remove="all">
 
@@ -39,19 +39,9 @@
             <span>Home</span>
           </li>
 
-          <li th:replace="~{::menuItem ('/upload','upload', 'Upload File', 'upload', 'Upload')}">
-            <span class="fa fa-search" aria-hidden="true"></span>
-            <span>Upload</span>
-          </li>
-
           <li th:replace="~{::menuItem ('/watched-content','watched-content', 'Watched Content', 'watched-content', 'Watched Content')}">
             <span class="fa fa-search" aria-hidden="true"></span>
             <span>Watched-Content</span>
-          </li>
-
-          <li th:replace="~{::menuItem ('/files','files', 'Files', 'files', 'Files')}">
-            <span class="fa fa-search" aria-hidden="true"></span>
-            <span>Files</span>
           </li>
 
           <li th:replace="~{::menuItem ('/devices','devices', 'Devices', 'devices', 'Devices')}">
@@ -59,21 +49,11 @@
             <span>Devices</span>
           </li>
 
-          <li th:replace="~{::menuItem ('/streaming-devices','streaming-devices', 'Streaming Devices', 'streaming-devices', 'Streaming Devices')}">
-            <span class="fa fa-th-list" aria-hidden="true"></span>
-            <span>Devices-IP Details</span>
-          </li>
-
-<!--          <li-->
-<!--            th:replace="~{::menuItem ('/oups','error','trigger a RuntimeException to see how it is handled','exclamation-triangle','Error')}">-->
-<!--            <span class="fa exclamation-triangle" aria-hidden="true"></span>-->
-<!--            <span>Error</span>-->
-<!--          </li>-->
-
         </ul>
       </div>
     </div>
   </nav>
+  <hr/>
   <div class="container-fluid">
     <div class="container">
 
