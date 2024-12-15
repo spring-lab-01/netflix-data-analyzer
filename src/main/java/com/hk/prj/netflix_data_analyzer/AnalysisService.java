@@ -41,16 +41,21 @@ public class AnalysisService {
     public void upload(MultipartFile file) {
         pathToZipFile = Path.of(uploadPath + File.separator + System.currentTimeMillis()+"_"+ file.getOriginalFilename());
         saveFile(file, pathToZipFile);
+        getFiles().forEach(System.out::println);
     }
 
     public List<Device> getDevices() {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
-            List<String> lines = Files.readAllLines(fs.getPath(Constants.DEVICES_FILE_PATH));
-            return IntStream.range(1, lines.size()).mapToObj(index -> processDeviceLine(lines.get(index)))
-                    .distinct()
-                    .filter(d-> StringUtils.hasLength(d.getLastUsedTime()))
-                    .sorted(Comparator.comparing(Device::getProfile).thenComparing(Device::getDeviceType).thenComparing(Device::getLastUsedTime))
-                    .collect(Collectors.toList());
+            Optional<Path> path = findPath(fs, Constants.DEVICES_FILE_PATH);
+            if (path.isPresent()) {
+                List<String> lines = Files.readAllLines(path.get());
+                return IntStream.range(1, lines.size()).mapToObj(index -> processDeviceLine(lines.get(index)))
+                        .distinct()
+                        .filter(d -> StringUtils.hasLength(d.getLastUsedTime()))
+                        .sorted(Comparator.comparing(Device::getProfile).thenComparing(Device::getDeviceType).thenComparing(Device::getLastUsedTime))
+                        .collect(Collectors.toList());
+            }
+            else return Collections.emptyList();
         } catch (Exception e) {
             e.printStackTrace();
             return Collections.emptyList();
@@ -116,38 +121,57 @@ public class AnalysisService {
 
     public Map<String, List<String>> getWatchedContent() {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
-            List<String> lines = Files.readAllLines(fs.getPath(Constants.VIEWED_CONTENT_PATH));
-            List<String> splitContent = Arrays.asList("episode", "limited series", "season");
-            return IntStream.range(1, lines.size())
-                    .mapToObj(index -> processViewedContentLine(lines.get(index)))
-                    .filter(v-> !StringUtils.hasLength(v.getVideoType()))
-                    .peek(v -> {
-                        if(splitContent.stream().anyMatch(x -> v.getTitle().toLowerCase().contains(x))) {
-                            String title = v.getTitle().split(":")[0];
-                            v.setTitle(title);
-                        }
-                    })
-                    .distinct()
-                    .sorted(Comparator.comparing(ViewedContent::getTitle))
-                    .collect(Collectors.groupingBy(ViewedContent::getProfile, Collectors.mapping(ViewedContent::getTitle, Collectors.toList())));
+            Optional<Path> path = findPath(fs, Constants.VIEWED_CONTENT_PATH);
+            if (path.isPresent()) {
+                List<String> lines = Files.readAllLines(path.get());
+                List<String> splitContent = Arrays.asList("episode", "limited series", "season");
+                return IntStream.range(1, lines.size())
+                        .mapToObj(index -> processViewedContentLine(lines.get(index)))
+                        .filter(v -> !StringUtils.hasLength(v.getVideoType()))
+                        .peek(v -> {
+                            if (splitContent.stream().anyMatch(x -> v.getTitle().toLowerCase().contains(x))) {
+                                String title = v.getTitle().split(":")[0];
+                                v.setTitle(title);
+                            }
+                        })
+                        .distinct()
+                        .sorted(Comparator.comparing(ViewedContent::getTitle))
+                        .collect(Collectors.groupingBy(ViewedContent::getProfile, Collectors.mapping(ViewedContent::getTitle, Collectors.toList())));
+            } else {
+                return Collections.emptyMap();
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return Collections.emptyMap();
         }
     }
 
+    private Optional<Path> findPath(FileSystem fs, String fileName) {
+        try {
+            return Files.walk(fs.getPath("/")).filter(path -> Files.isRegularFile(path) && path.endsWith(fileName)).findFirst();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public String getPaymentDetails() {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
-            List<String> lines = Files.readAllLines(fs.getPath(Constants.PAYMENTS_PATH));
-            List<PaymentDetail> paymentDetails = IntStream.range(1, lines.size())
-                    .mapToObj(index -> processPaymentDetailLine(lines.get(index))).toList();
-            Double totalSpent = paymentDetails.stream()
-                    .filter(v-> StringUtils.hasLength(v.getPriceAmt()))
-                    .filter(v-> v.getTxnType().contains("SALE") || v.getTxnType().contains("CAPTURE"))
-                    .filter(v-> v.getPmtStatus().contains("APPROVED") && v.getFinalInvoiceResult().contains("SETTLED"))
-                    .map(v-> Double.valueOf(v.getGrossSaleAmt().replace("\"","")))
-                    .reduce(Double::sum).orElse(0.0);
-           return String.format("%.2f%s", totalSpent, paymentDetails.get(0).getCurrency());
+            Optional<Path> path = findPath(fs, Constants.PAYMENTS_PATH);
+            if (path.isPresent()) {
+                List<String> lines = Files.readAllLines(path.get());
+                List<PaymentDetail> paymentDetails = IntStream.range(1, lines.size())
+                        .mapToObj(index -> processPaymentDetailLine(lines.get(index)))
+                        .filter(Objects::nonNull)
+                        .toList();
+                Double totalSpent = paymentDetails.stream()
+                        .filter(v -> StringUtils.hasLength(v.getPriceAmt()))
+                        .filter(v -> v.getTxnType().contains("SALE") || v.getTxnType().contains("CAPTURE"))
+                        .filter(v -> v.getPmtStatus().contains("APPROVED") && v.getFinalInvoiceResult().contains("SETTLED"))
+                        .map(v -> Double.valueOf(v.getGrossSaleAmt().replace("\"", "")))
+                        .reduce(Double::sum).orElse(0.0);
+                return String.format("%.2f%s", totalSpent, paymentDetails.get(0).getCurrency());
+            }
+            else return "0.0";
         } catch (Exception e) {
             e.printStackTrace();
             return "0.0";
@@ -156,7 +180,10 @@ public class AnalysisService {
 
     private PaymentDetail processPaymentDetailLine(String line) {
         String[] record = line.split(",");
-        return new PaymentDetail(record[0], record[8], record[9], record[10], record[11], record[12], record[13], record[14]);
+        if(record.length >= 15) {
+            return new PaymentDetail(record[0], record[8], record[9], record[10], record[11], record[12], record[13], record[14]);
+        }
+        else return null;
     }
 
     private ViewedContent processViewedContentLine(String line) {
@@ -166,10 +193,14 @@ public class AnalysisService {
 
     public AccountDetail getAccountDetail() {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
-            String[] recordArray = Files.readAllLines(fs.getPath(Constants.ACCOUNT_DETAILS_PATH)).get(1)
-                    .replace("\"", "").split(",");
+            Optional<Path> path = findPath(fs, Constants.ACCOUNT_DETAILS_PATH);
+            if (path.isPresent()) {
+                List<String> lines = Files.readAllLines(path.get());
+                String[] recordArray = lines.get(1)
+                        .replace("\"", "").split(",");
 
-            return new AccountDetail(recordArray[0], recordArray[1], recordArray[2]);
+                return new AccountDetail(recordArray[0], recordArray[1], recordArray[2]);
+            }else return null;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
