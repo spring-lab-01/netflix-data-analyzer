@@ -226,7 +226,11 @@ public class AnalysisService {
     private PaymentDetail processPaymentDetailLine(String line) {
         String[] record = line.split(",");
         if(record.length >= 15) {
-            return new PaymentDetail(record[0].substring(0, 4), record[0], record[8], record[9], record[10], record[11], record[12], record[13], record[14]);
+            try {
+                return new PaymentDetail(getYearFormDateFormat(record[0]), record[0], record[8], record[9], record[10], record[11], record[12], record[13], record[14]);
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            }
         }
         else return null;
     }
@@ -236,20 +240,33 @@ public class AnalysisService {
         Duration duration = convertStringToDuration(record[2]);
         String year;
         try {
-            year = getYear(record[1]);
+            year = getYearFromDateTimeFormat(record[1]);
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
         return new ViewedContent(record[0], record[1], duration, record[4], record[5], year);
     }
 
-    private static String getYear(String dateString) throws ParseException {
+    private static String getYearFromDateTimeFormat(String dateString) throws ParseException {
         SimpleDateFormat sdf ;
         if(dateString.contains("/")){
             sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm");
         }
         else {
             sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        }
+        Date date = sdf.parse(dateString);
+        SimpleDateFormat df = new SimpleDateFormat("yyyy");
+        return df.format(date);
+    }
+
+    private static String getYearFormDateFormat(String dateString) throws ParseException {
+        SimpleDateFormat sdf ;
+        if(dateString.contains("/")){
+            sdf = new SimpleDateFormat("MM/dd/yyyy");
+        }
+        else {
+            sdf = new SimpleDateFormat("yyyy-MM-dd");
         }
         Date date = sdf.parse(dateString);
         SimpleDateFormat df = new SimpleDateFormat("yyyy");
