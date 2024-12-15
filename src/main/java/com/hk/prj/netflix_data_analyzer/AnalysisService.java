@@ -154,7 +154,7 @@ public class AnalysisService {
         }
     }
 
-    public String getPaymentDetails() {
+    public List<SpentByYear> getPaymentDetails() {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
             Optional<Path> path = findPath(fs, Constants.PAYMENTS_PATH);
             if (path.isPresent()) {
@@ -163,25 +163,29 @@ public class AnalysisService {
                         .mapToObj(index -> processPaymentDetailLine(lines.get(index)))
                         .filter(Objects::nonNull)
                         .toList();
-                Double totalSpent = paymentDetails.stream()
+                Map<String, List<PaymentDetail>> groupByYear = paymentDetails.stream()
                         .filter(v -> StringUtils.hasLength(v.getPriceAmt()))
                         .filter(v -> v.getTxnType().contains("SALE") || v.getTxnType().contains("CAPTURE"))
                         .filter(v -> v.getPmtStatus().contains("APPROVED") && v.getFinalInvoiceResult().contains("SETTLED"))
-                        .map(v -> Double.valueOf(v.getGrossSaleAmt().replace("\"", "")))
-                        .reduce(Double::sum).orElse(0.0);
-                return String.format("%.2f%s", totalSpent, paymentDetails.get(0).getCurrency());
+                        .collect(Collectors.groupingBy(PaymentDetail::getYear));
+                return groupByYear.entrySet().stream().map(e-> {
+                            Double spent = e.getValue().stream()
+                                    .map(v -> Double.valueOf(v.getGrossSaleAmt().replace("\"", "")))
+                            .reduce(Double::sum).orElse(0.0);
+                            return new SpentByYear(e.getKey(), String.format("%.2f %s", spent, e.getValue().get(0).getCurrency()));
+                        }).toList();
             }
-            else return "0.0";
+            else return Collections.emptyList();
         } catch (Exception e) {
             e.printStackTrace();
-            return "0.0";
+            return Collections.emptyList();
         }
     }
 
     private PaymentDetail processPaymentDetailLine(String line) {
         String[] record = line.split(",");
         if(record.length >= 15) {
-            return new PaymentDetail(record[0], record[8], record[9], record[10], record[11], record[12], record[13], record[14]);
+            return new PaymentDetail(record[0].substring(0, 4), record[0], record[8], record[9], record[10], record[11], record[12], record[13], record[14]);
         }
         else return null;
     }

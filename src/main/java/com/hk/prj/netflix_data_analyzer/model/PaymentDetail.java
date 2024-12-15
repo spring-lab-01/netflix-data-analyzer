@@ -2,6 +2,7 @@ package com.hk.prj.netflix_data_analyzer.model;
 
 public class PaymentDetail {
 
+    private String year;
     private String transactionDate;
     private String priceAmt;
     private String currency;
@@ -12,7 +13,8 @@ public class PaymentDetail {
     private String finalInvoiceResult;
 
 
-    public PaymentDetail(String transactionDate, String priceAmt, String currency, String taxAmt, String grossSaleAmt, String txnType, String pmtStatus, String finalInvoiceResult) {
+    public PaymentDetail(String year, String transactionDate, String priceAmt, String currency, String taxAmt, String grossSaleAmt, String txnType, String pmtStatus, String finalInvoiceResult) {
+        this.year = year;
         this.transactionDate = transactionDate;
         this.priceAmt = priceAmt;
         this.currency = currency;
@@ -21,6 +23,10 @@ public class PaymentDetail {
         this.txnType = txnType;
         this.pmtStatus = pmtStatus;
         this.finalInvoiceResult = finalInvoiceResult;
+    }
+
+    public String getYear() {
+        return year;
     }
 
     public String getTransactionDate() {
