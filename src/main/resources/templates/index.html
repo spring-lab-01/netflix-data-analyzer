@@ -1,31 +1,11 @@
 <!DOCTYPE html>
 
-<html xmlns:th="https://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'home')}">
+<html xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout (~{::body},'home')}">
 
 <body>
-
 <div class="container">
-    <h2>Welcome</h2>
-
-    Upload zip file which is received from Netflix.
-    Once Uploaded, this application will analyze that file and show information in simple format.
-
-    <div class="p-3 mb-2 bg-dark text-white">
-        <br/>
-        <div>
-            <form
-                    id="uploadFile"
-                    method="post"
-                    th:action="@{/upload}"
-                    enctype="multipart/form-data">
-                <input id="input-file" type="file" name="file"/>
-                <button type="submit" class="btn btn-large btn-success">
-                    Upload
-                </button>
-            </form>
-        </div>
-    </div>
-
     <div th:if="${message != null}"
          class="alert alert-secondary alert-dismissible fade show text-center message mt-3"
          role="alert">
@@ -34,111 +14,140 @@
             <span aria-hidden="true">×</span>
         </button>
     </div>
-
-    <div th:if="${accountDetail != null}"
-         class="p-3 mb-2"
-         role="alert">
-        <h3>Account Detail</h3>
-        Name: <label th:text='${accountDetail.firstName}'/> <label th:text='${accountDetail.lastName}'/>
-        <br/>
-        Email: <label th:text='${accountDetail.email}'></label>
-    </div>
-
-    <div th:if='${paymentDetails.size() > 0}'
-         class="p-3 mb-2"
-         role="alert">
-        <h3>Total Spent in 2024</h3>
-        <table class="table table-hover">
-            <thead class="thead-light">
-            <tr>
-                <th scope="col">Year</th>
-                <th scope="col">Amount</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="payment : ${paymentDetails}">
-                <td>[[${payment.year}]]</td>
-                <td>[[${payment.amount}]]</td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="container">
-        <div th:if="${contents.size() > 0}">
-            <h3>Watched Content - By Profile</h3>
-            <table class="table table-hover">
-                <thead class="thead-light">
-                <tr>
-                    <th scope="col">Profile</th>
-                    <th scope="col">Year</th>
-                    <th scope="col">Number</th>
-                    <th scope="col">Duration</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="content : ${contents}">
-                    <td>[[${content.profile}]]</td>
-                    <td>[[${content.year}]]</td>
-                    <td>[[${content.total}]]</td>
-                    <td>[[${content.totalDuration}]]</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="container">
-        <div th:if="${devices.size() > 0}">
-            <h3>Devices</h3>
-            <table class="table table-hover">
-                <thead class="thead-light">
-                <tr>
-                    <!--                <th scope="col">Profile</th>-->
-                    <th scope="col">Device Type</th>
-                    <th scope="col">Last Used</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="device : ${devices}">
-                    <!--                <td>[[${device.profile}]]</td>-->
-                    <td>[[${device.deviceType}]]</td>
-                    <td>[[${device.lastUsedTime}]]</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Files in Zip File-->
-<!--    <div th:if="${files != null}"-->
-<!--         class="alert alert-secondary alert-dismissible fade show text-center message mt-3"-->
-<!--         role="alert">-->
-<!--        <h3>Files in recent upload</h3>-->
-
-
-<!--        <div th:if="${files.size() > 0}">-->
-<!--            <table class="table table-striped text-sm-start">-->
-<!--                <thead class="thead-dark">-->
-<!--                <tr>-->
-<!--                    <th scope="col">Files</th>-->
-<!--                </tr>-->
-<!--                </thead>-->
-<!--                <tbody>-->
-<!--                <tr th:each="file : ${files}">-->
-<!--                    <td>[[${file}]]</td>-->
-<!--                </tr>-->
-<!--                </tbody>-->
-<!--            </table>-->
-<!--        </div>-->
-
-<!--        <div th:unless="${files.size() > 0}">-->
-<!--            <span>No files found!</span>-->
-<!--        </div>-->
-<!--    </div>-->
-
 </div>
+<div sec:authorize="isAnonymous()">
+    <div class="container">
+        <h2>Welcome</h2>
+        Login to upload and analyze your file
+    </div>
+</div>
+<div sec:authorize="isAuthenticated()">
+    <div class="container">
+        <h2>Welcome</h2>
 
+        Upload zip file which is received from Netflix.
+        Once Uploaded, this application will analyze that file and show information in simple format.
+
+        <div class="p-3 mb-2 bg-dark text-white">
+            <br/>
+            <div>
+                <form
+                        id="uploadFile"
+                        method="post"
+                        th:action="@{/upload}"
+                        enctype="multipart/form-data">
+                    <input id="input-file" type="file" name="file"/>
+                    <button type="submit" class="btn btn-large btn-success">
+                        Upload
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div th:if="${accountDetail != null}"
+             class="p-3 mb-2"
+             role="alert">
+            <h3>Account Detail</h3>
+            Name: <label th:text='${accountDetail.firstName}'/> <label th:text='${accountDetail.lastName}'/>
+            <br/>
+            Email: <label th:text='${accountDetail.email}'></label>
+        </div>
+
+        <div th:if='${paymentDetails.size() > 0}'
+             class="p-3 mb-2"
+             role="alert">
+            <h3>Total Spent in 2024</h3>
+            <table class="table table-hover">
+                <thead class="thead-light">
+                <tr>
+                    <th scope="col">Year</th>
+                    <th scope="col">Amount</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="payment : ${paymentDetails}">
+                    <td>[[${payment.year}]]</td>
+                    <td>[[${payment.amount}]]</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="container">
+            <div th:if="${contents.size() > 0}">
+                <h3>Watched Content - By Profile</h3>
+                <table class="table table-hover">
+                    <thead class="thead-light">
+                    <tr>
+                        <th scope="col">Profile</th>
+                        <th scope="col">Year</th>
+                        <th scope="col">Number</th>
+                        <th scope="col">Duration</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="content : ${contents}">
+                        <td>[[${content.profile}]]</td>
+                        <td>[[${content.year}]]</td>
+                        <td>[[${content.total}]]</td>
+                        <td>[[${content.totalDuration}]]</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="container">
+            <div th:if="${devices.size() > 0}">
+                <h3>Devices</h3>
+                <table class="table table-hover">
+                    <thead class="thead-light">
+                    <tr>
+                        <!--                <th scope="col">Profile</th>-->
+                        <th scope="col">Device Type</th>
+                        <th scope="col">Last Used</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="device : ${devices}">
+                        <!--                <td>[[${device.profile}]]</td>-->
+                        <td>[[${device.deviceType}]]</td>
+                        <td>[[${device.lastUsedTime}]]</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Files in Zip File-->
+        <!--    <div th:if="${files != null}"-->
+        <!--         class="alert alert-secondary alert-dismissible fade show text-center message mt-3"-->
+        <!--         role="alert">-->
+        <!--        <h3>Files in recent upload</h3>-->
+
+
+        <!--        <div th:if="${files.size() > 0}">-->
+        <!--            <table class="table table-striped text-sm-start">-->
+        <!--                <thead class="thead-dark">-->
+        <!--                <tr>-->
+        <!--                    <th scope="col">Files</th>-->
+        <!--                </tr>-->
+        <!--                </thead>-->
+        <!--                <tbody>-->
+        <!--                <tr th:each="file : ${files}">-->
+        <!--                    <td>[[${file}]]</td>-->
+        <!--                </tr>-->
+        <!--                </tbody>-->
+        <!--            </table>-->
+        <!--        </div>-->
+
+        <!--        <div th:unless="${files.size() > 0}">-->
+        <!--            <span>No files found!</span>-->
+        <!--        </div>-->
+        <!--    </div>-->
+
+    </div>
+</div>
 </body>
 
 </html>

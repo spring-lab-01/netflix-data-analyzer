@@ -18,6 +18,14 @@ public class FileUploadController {
         this.analysisService = fileUploadService;
     }
 
+    @GetMapping("/logout")
+    public ModelAndView logout() {
+        ModelAndView modelAndView = new ModelAndView("index") ;
+        String message = "You are logged out successfully" ;
+        modelAndView.getModel().put("message", message);
+        return modelAndView;
+    }
+
     @GetMapping
     public ModelAndView getHome(){
         ModelAndView modelAndView = new ModelAndView("index") ;
