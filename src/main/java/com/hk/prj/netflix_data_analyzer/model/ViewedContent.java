@@ -2,16 +2,16 @@ package com.hk.prj.netflix_data_analyzer.model;
 
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class ViewedContent {
-    private String profile;
+
+    private final String profile;
     private final String startTime;
     private final Duration duration;
     private String title;
-    private String videoType;
-    private String year;
+    private final String videoType;
+    private final String year;
 
     public ViewedContent(String profile, String startTime, Duration duration, String title, String videoType, String year) {
         this.profile = profile;

@@ -55,8 +55,8 @@ public class AnalysisService {
                 List<String> lines = Files.readAllLines(path.get());
                 return IntStream.range(1, lines.size()).mapToObj(index -> processDeviceLine(lines.get(index)))
                         .distinct()
-                        .filter(d -> StringUtils.hasLength(d.getLastUsedTime()))
-                        .sorted(Comparator.comparing(Device::getProfile).thenComparing(Device::getDeviceType).thenComparing(Device::getLastUsedTime))
+                        .filter(d -> StringUtils.hasLength(d.lastUsedTime()))
+                        .sorted(Comparator.comparing(Device::profile).thenComparing(Device::deviceType).thenComparing(Device::lastUsedTime))
                         .collect(Collectors.toList());
             }
             else return Collections.emptyList();
@@ -152,7 +152,7 @@ public class AnalysisService {
                                         return new ViewedContentResponse(profile, watchedContent, watchedDuration, DurationFormatUtils.formatDurationWords(watchedDuration.toMillis(), true, true), year);
                                     }).toList();
                         }).flatMap(List::stream)
-                        .sorted(Comparator.comparing(ViewedContentResponse::getDuration).reversed())
+                        .sorted(Comparator.comparing(ViewedContentResponse::duration).reversed())
                         .collect(Collectors.toList());
                         //.collect(Collectors.groupingBy(ViewedContent::getProfile, Collectors.mapping(ViewedContent::getTitle, Collectors.toList())));
             } else {
@@ -209,15 +209,15 @@ public class AnalysisService {
                         .filter(Objects::nonNull)
                         .toList();
                 Map<String, List<PaymentDetail>> groupByYear = paymentDetails.stream()
-                        .filter(v -> StringUtils.hasLength(v.getPriceAmt()))
-                        .filter(v -> v.getTxnType().contains("SALE") || v.getTxnType().contains("CAPTURE"))
-                        .filter(v -> v.getPmtStatus().contains("APPROVED") && v.getFinalInvoiceResult().contains("SETTLED"))
-                        .collect(Collectors.groupingBy(PaymentDetail::getYear));
+                        .filter(v -> StringUtils.hasLength(v.priceAmt()))
+                        .filter(v -> v.txnType().contains("SALE") || v.txnType().contains("CAPTURE"))
+                        .filter(v -> v.pmtStatus().contains("APPROVED") && v.finalInvoiceResult().contains("SETTLED"))
+                        .collect(Collectors.groupingBy(PaymentDetail::year));
                 return groupByYear.entrySet().stream().map(e-> {
                             Double spent = e.getValue().stream()
-                                    .map(v -> Double.valueOf(v.getGrossSaleAmt().replace("\"", "")))
+                                    .map(v -> Double.valueOf(v.grossSaleAmt().replace("\"", "")))
                             .reduce(Double::sum).orElse(0.0);
-                            return new SpentByYear(e.getKey(), String.format("%.2f %s", spent, e.getValue().get(0).getCurrency()));
+                            return new SpentByYear(e.getKey(), String.format("%.2f %s", spent, e.getValue().get(0).currency()));
                         }).toList();
             }
             else return Collections.emptyList();
