@@ -12,26 +12,27 @@
          class="alert alert-secondary alert-dismissible fade show text-center message mt-3"
          role="alert">
         [[${message}]]
-        <button type="button" class="close btn-sm" data-dismiss="alert" aria-label="Close">
+        <button type="button" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">×</span>
         </button>
     </div>
 
-    <div class="p-3 mb-2 bg-dark text-white">
+    <div>
+        Upload the zip file received from Netflix
         <br/>
-        <div>
-            <form
-                    id="uploadFile"
-                    method="post"
-                    th:action="@{/upload}"
-                    enctype="multipart/form-data">
-                <input id="input-file" type="file" name="file"/>
-                <button type="submit" class="btn btn-large btn-success">
-                    Upload
-                </button>
-            </form>
-        </div>
+        <br/>
+        <form
+                id="uploadFile"
+                method="post"
+                th:action="@{/upload}"
+                enctype="multipart/form-data">
+            <input id="input-file" type="file" name="file" class="cta-button"/>
+            <button type="submit" class="cta-button">
+                Upload
+            </button>
+        </form>
     </div>
+
 
 </div>
 

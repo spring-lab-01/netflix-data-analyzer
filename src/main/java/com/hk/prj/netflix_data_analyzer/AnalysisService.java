@@ -148,9 +148,11 @@ public class AnalysisService {
                                         String year = e1.getKey();
                                         Integer watchedContent = e1.getValue().size();
                                         Duration watchedDuration = Duration.ofSeconds(e1.getValue().stream().map(ViewedContent::getDuration).map(Duration::getSeconds).reduce(Long::sum).orElse(0L));
-                                        return new ViewedContentResponse(profile, watchedContent, DurationFormatUtils.formatDurationWords(watchedDuration.toMillis(), true, true), year);
+                                        return new ViewedContentResponse(profile, watchedContent, watchedDuration, DurationFormatUtils.formatDurationWords(watchedDuration.toMillis(), true, true), year);
                                     }).toList();
-                        }).flatMap(List::stream).collect(Collectors.toList());
+                        }).flatMap(List::stream)
+                        .sorted(Comparator.comparing(ViewedContentResponse::getDuration).reversed())
+                        .collect(Collectors.toList());
                         //.collect(Collectors.groupingBy(ViewedContent::getProfile, Collectors.mapping(ViewedContent::getTitle, Collectors.toList())));
             } else {
                 return Collections.emptyList();
