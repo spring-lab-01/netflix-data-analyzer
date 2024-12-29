@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netflix Watch History Analyzer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 960px;
+            margin: auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        header, footer {
+            margin: auto;
+            max-width: 960px;
+            text-align: center;
+            padding: 20px;
+            background-color: #ba0018;
+            color: #fff;
+        }
+        h1{
+            color: #ffffff;
+        }
+        h2, h3 {
+            color: #ba0018;
+        }
+        .hero {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .hero h1 {
+            font-size: 2.5em;
+        }
+        .section {
+            margin: 20px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #ba0018;
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .cta-button:hover {
+            background-color: #ba0018;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Netflix Data Analyzer</h1>
+</header>
+<div class="container">
+    <div class="hero">
+        <h2>Unlock Your Netflix Insights</h2>
+        <p>Analyze your watch history and trends</p>
+        <a th:href="@{/oauth2/authorization/cognito}" class="cta-button">Get Started Now</a>
+    </div>
+    <div class="section">
+        <h2>How It Works</h2>
+        <ol>
+            <li>Upload your Netflix zip file.</li>
+            <li>Let our app process your data.</li>
+            <li>Explore your personalized watch history analytics.</li>
+        </ol>
+    </div>
+    <div class="section">
+        <h2>Features and Benefits</h2>
+        <ul>
+            <li>Comprehensive Analytics: Visualize your viewing patterns and trends.</li>
+            <li>User-Friendly Interface: Easy to navigate and understand.</li>
+            <li>Secure Data Processing: Your data is handled with utmost security.</li>
+        </ul>
+    </div>
+</div>
+<footer>
+    <p>&copy; 2025 Data Analyzer. All rights reserved.</p>
+</footer>
+</body>
+</html>

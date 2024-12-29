@@ -4,80 +4,97 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
-  <title>NDA :: Netflix Data Analyzer</title>
-  <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}"/>
-  <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
-  <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+  <title>Netflix Data Analyzer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 960px;
+      margin: auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    header, footer {
+      margin: auto;
+      max-width: 960px;
+      text-align: center;
+      padding: 20px;
+      background-color: #ba0018;
+      color: #fff;
+    }
+    h1{
+      color: #ffffff;
+    }
+    h1 a{
+      color: #ffffff;
+    }
+
+    h2, h3 {
+      color: #ba0018;
+    }
+
+    .hero h1 {
+      font-size: 2.5em;
+    }
+    table {
+      border: 1px solid #ddd;
+      padding: 8px;
+      border-collapse: collapse;
+      text-align: left;
+      width: 100%;
+    }
+    th, tr, td {
+      border: 1px solid #9c9999;
+      padding: 8px;
+    }
+    th{
+      background-color: #ba0018;
+      color: #f4f4f4;
+    }
+
+    .cta-button {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #ba0018;
+      color: #fff;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .cta-button:hover {
+      background-color: #ba0018;
+    }
+    .align-right{
+      align-content: end;
+    }
+  </style>
 </head>
 
-
 <body>
+<header>
+  <h1> <a href="/"> Netflix Data Analyzer</a></h1>
+</header>
 <div sec:authorize="isAuthenticated()">
-  <nav class="navbar navbar-expand-lg navbar-light" role="navigation">
-    <div class="container-fluid">
-      <a class="navbar-brand" th:href="@{/}"><span></span></a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-navbar">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="container collapse navbar-collapse" id="main-navbar" style>
-
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0" th:remove="all">
-
-          <li th:fragment="menuItem (link,active,title,glyph,text)" th:class="nav-item">
-            <a th:class="${active==menu ? 'nav-link active' : 'nav-link'}" th:href="@{__${link}__}" th:title="${title}">
-              <span th:class="'fa fa-'+${glyph}" class="fa fa-home"></span>
-              <span th:text="${text}">Template</span>
-            </a>
-          </li>
-
-        </ul>
-
-        <ul class="nav navbar-nav me-auto">
-
-          <li th:replace="~{::menuItem ('/','home', 'Home', 'home', 'Home')}">
-            <span class="fa fa-search" aria-hidden="true"></span>
-            <span>Home</span>
-          </li>
-
-          <li th:replace="~{::menuItem ('/watched-content','watched-content', 'Watched Content', 'watched-content', 'Watched Content')}">
-            <span class="fa fa-search" aria-hidden="true"></span>
-            <span>Watched-Content</span>
-          </li>
-
-<!--          <li th:replace="~{::menuItem ('/devices','devices', 'Devices', 'devices', 'Devices')}">-->
-<!--            <span class="fa fa-th-list" aria-hidden="true"></span>-->
-<!--            <span>Devices</span>-->
-<!--          </li>-->
-
-        </ul>
-      </div>
-      <div class="container align-content-end">
-        Hello, <strong th:text="${#authentication.name}"></strong>!<a th:href="@{/logout}"><button>Log out</button></a>
-      </div>
-    </div>
-  </nav>
-
-
-  <hr/>
+  <div class="container align-content-center">
+    Hello, <strong th:text="${#authentication.name}"></strong>  &nbsp; &nbsp; <a th:href="@{/logout}"><button class="cta-button">Log out</button></a>
+  </div>
 </div>
+
   <div class="container-fluid">
     <div class="container">
-
       <th:block th:insert="${template}" />
-
-      <br />
-      <br />
-
     </div>
   </div>
 
-  <script th:src="@{/webjars/bootstrap/5.3.3/dist/js/bootstrap.bundle.min.js}"></script>
-
-<div sec:authorize="isAnonymous()">
-  <div>
-    <a th:href="@{/oauth2/authorization/cognito}"><button>Log in</button></a>
-  </div>
-</div>
 </body>
+<footer>
+  <p>&copy; 2025 Netflix Data Analyzer. All rights reserved.</p>
+</footer>
 </html>
 

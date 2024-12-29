@@ -2,6 +2,7 @@ package com.hk.prj.netflix_data_analyzer;
 
 import com.hk.prj.netflix_data_analyzer.model.*;
 import jakarta.annotation.PostConstruct;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -147,7 +148,7 @@ public class AnalysisService {
                                         String year = e1.getKey();
                                         Integer watchedContent = e1.getValue().size();
                                         Duration watchedDuration = Duration.ofSeconds(e1.getValue().stream().map(ViewedContent::getDuration).map(Duration::getSeconds).reduce(Long::sum).orElse(0L));
-                                        return new ViewedContentResponse(profile, watchedContent, watchedDuration.toString(), year);
+                                        return new ViewedContentResponse(profile, watchedContent, DurationFormatUtils.formatDurationWords(watchedDuration.toMillis(), true, true), year);
                                     }).toList();
                         }).flatMap(List::stream).collect(Collectors.toList());
                         //.collect(Collectors.groupingBy(ViewedContent::getProfile, Collectors.mapping(ViewedContent::getTitle, Collectors.toList())));
@@ -160,7 +161,7 @@ public class AnalysisService {
         }
     }
 
-    public Map<String, List<ViewedContent>> getWatchedContentMap() {
+    public List<ViewedContent> getWatchedContentMap(String profile, String year) {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
             Optional<Path> path = findPath(fs, Constants.VIEWED_CONTENT_PATH);
             if (path.isPresent()) {
@@ -168,7 +169,7 @@ public class AnalysisService {
                 List<String> splitContent = Arrays.asList("episode", "limited series", "season");
                 return IntStream.range(1, lines.size())
                         .mapToObj(index -> processViewedContentLine(lines.get(index)))
-                        .filter(v -> !StringUtils.hasLength(v.getVideoType()))
+                        .filter(v -> !StringUtils.hasLength(v.getVideoType()) && v.getProfile().trim().equalsIgnoreCase(profile) && v.getYear().trim().equalsIgnoreCase(year))
                         .peek(v -> {
                             if (splitContent.stream().anyMatch(x -> v.getTitle().toLowerCase().contains(x))) {
                                 String title = v.getTitle().split(":")[0];
@@ -177,13 +178,13 @@ public class AnalysisService {
                         })
                         .distinct()
                         .sorted(Comparator.comparing(ViewedContent::getTitle))
-                        .collect(Collectors.groupingBy(ViewedContent::getProfile));
+                        .collect(Collectors.toList());
             } else {
-                return Collections.emptyMap();
+                return Collections.emptyList();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return Collections.emptyMap();
+            return Collections.emptyList();
         }
     }
 

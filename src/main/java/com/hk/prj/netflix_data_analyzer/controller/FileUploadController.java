@@ -1,6 +1,7 @@
 package com.hk.prj.netflix_data_analyzer.controller;
 
 import com.hk.prj.netflix_data_analyzer.AnalysisService;
+import com.hk.prj.netflix_data_analyzer.service.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,9 +14,11 @@ import org.springframework.web.servlet.ModelAndView;
 public class FileUploadController {
 
     private final AnalysisService analysisService;
+    private final UserService userService;
 
-    public FileUploadController(AnalysisService fileUploadService) {
+    public FileUploadController(AnalysisService fileUploadService, UserService userService) {
         this.analysisService = fileUploadService;
+        this.userService = userService;
     }
 
     @GetMapping("/logout")
@@ -28,16 +31,25 @@ public class FileUploadController {
 
     @GetMapping
     public ModelAndView getHome(){
-        ModelAndView modelAndView = new ModelAndView("index") ;
-
-        modelAndView.getModel().put("files", analysisService.getFiles());
-        modelAndView.getModel().put("accountDetail", analysisService.getAccountDetail());
-        modelAndView.getModel().put("devices", analysisService.getDevices());
-        //modelAndView.getModel().put("profiles", analysisService.getWatchedContent().keySet());
-        modelAndView.getModel().put("contents", analysisService.getWatchedContent());
-        modelAndView.getModel().put("paymentDetails", analysisService.getPaymentDetails());
-
+        ModelAndView modelAndView;
+        String userName = userService.getLoggedInUsername();
+        if( userName != null && !userName.equalsIgnoreCase("anonymousUser")) {
+            modelAndView = new ModelAndView("index");
+            modelAndView.getModel().put("files", analysisService.getFiles());
+            modelAndView.getModel().put("accountDetail", analysisService.getAccountDetail());
+            modelAndView.getModel().put("devices", analysisService.getDevices());
+            //modelAndView.getModel().put("profiles", analysisService.getWatchedContent().keySet());
+            modelAndView.getModel().put("contents", analysisService.getWatchedContent());
+            modelAndView.getModel().put("paymentDetails", analysisService.getPaymentDetails());
+        }
+        else
+            modelAndView = new ModelAndView("home");
         return modelAndView;
+    }
+
+    @GetMapping("uploadView")
+    public String getUploadView() {
+        return "upload" ;
     }
 
     @PostMapping("/upload")
