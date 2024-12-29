@@ -1,6 +1,6 @@
 package com.hk.prj.netflix_data_analyzer.controller;
 
-import com.hk.prj.netflix_data_analyzer.AnalysisService;
+import com.hk.prj.netflix_data_analyzer.service.AnalysisService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
