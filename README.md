@@ -28,7 +28,11 @@ Information about this file can be found [here](https://www.netflix.com/account/
 
 
 ## Dynamo DB setup in local (with Docker) - Run below commands in terminal
-1. docker pull amazon/dynamodb-local
-2. docker run -p 8000:8000 amazon/dynamodb-local -jar DynamoDBLocal.jar -inMemory -sharedDb
-3. npm install -g dynamodb-admin
-4. dynamodb-admin --dynamo-endpoint=http://localhost:8000
+ - docker pull amazon/dynamodb-local  
+ - docker run -p 8000:8000 amazon/dynamodb-local -jar DynamoDBLocal.jar -inMemory -sharedDb 
+ - npm install -g dynamodb-admin 
+ - dynamodb-admin --dynamo-endpoint=http://localhost:8000
+ - Open dynamoDb admin at http://localhost:8001
+ - Create these two tables with partition_key = email as below screenshots
+   ![](upload-analysis-table.png)
+   ![](upload-detail-table.png)
