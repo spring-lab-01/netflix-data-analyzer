@@ -25,3 +25,10 @@ Information about this file can be found [here](https://www.netflix.com/account/
 ### 2. Using IDE
 - Clone this repo and run `mvn spring-boot:run`
 
+
+
+## Dynamo DB setup in local (with Docker) - Run below commands in terminal
+1. docker pull amazon/dynamodb-local
+2. docker run -p 8000:8000 amazon/dynamodb-local -jar DynamoDBLocal.jar -inMemory -sharedDb
+3. npm install -g dynamodb-admin
+4. dynamodb-admin --dynamo-endpoint=http://localhost:8000

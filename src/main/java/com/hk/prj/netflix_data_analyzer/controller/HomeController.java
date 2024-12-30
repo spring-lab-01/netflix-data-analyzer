@@ -1,5 +1,6 @@
 package com.hk.prj.netflix_data_analyzer.controller;
 
+import com.hk.prj.netflix_data_analyzer.entity.UploadAnalysis;
 import com.hk.prj.netflix_data_analyzer.service.AnalysisService;
 import com.hk.prj.netflix_data_analyzer.service.UserService;
 import org.springframework.stereotype.Controller;
@@ -30,11 +31,11 @@ public class HomeController {
     public String getHome(Model model) {
         String userName = userService.getLoggedInUsername();
         if( userName != null && !userName.equalsIgnoreCase("anonymousUser")) {
-            model.addAttribute("files", analysisService.getFiles());
-            model.addAttribute("accountDetail", analysisService.getAccountDetail());
-            model.addAttribute("devices", analysisService.getDevices());
-            model.addAttribute("contents", analysisService.getWatchedContent());
-            model.addAttribute("paymentDetails", analysisService.getPaymentDetails());
+            UploadAnalysis uploadAnalysis = analysisService.getUploadAnalysis();
+            model.addAttribute("accountDetail", uploadAnalysis.getAccountDetail());
+            model.addAttribute("devices", uploadAnalysis.getDevices());
+            model.addAttribute("contents", analysisService.getWatchedContent(uploadAnalysis.getViewingActivityList()));
+            model.addAttribute("paymentDetails", uploadAnalysis.getPaymentSummary());
             return "index";
         }
         else

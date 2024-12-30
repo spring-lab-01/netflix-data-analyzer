@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Objects;
+
 @Controller
 public class FileUploadController {
 
@@ -23,12 +25,22 @@ public class FileUploadController {
     public String uploadFile(Model model, @RequestParam("file") MultipartFile file) {
         String message = "";
         try {
-            analysisService.upload(file);
+            if(file.isEmpty()) {
+                message = "File is empty";
+            } else if (!Objects.requireNonNull(file.getOriginalFilename()).endsWith(".zip")) {
+                message = "File is not zipped";
+            } else
+                analysisService.upload(file);
         } catch (Exception e) {
             message = "Could not upload the file: " + file.getOriginalFilename() + ". Error: " + e.getMessage();
+        }
+        finally {
             model.addAttribute("message", message);
         }
-        return "redirect:/";
+        if(message.isEmpty())
+            return "redirect:/";
+        else
+            return "upload";
     }
 
 }

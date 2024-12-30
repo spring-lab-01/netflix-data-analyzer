@@ -1,4 +1,4 @@
-package com.hk.prj.netflix_data_analyzer.model;
+package com.hk.prj.netflix_data_analyzer.csvdto;
 
 import java.util.Objects;
 

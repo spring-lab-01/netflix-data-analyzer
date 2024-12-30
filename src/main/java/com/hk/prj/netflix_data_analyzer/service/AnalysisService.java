@@ -1,8 +1,11 @@
 package com.hk.prj.netflix_data_analyzer.service;
 
 import com.hk.prj.netflix_data_analyzer.Constants;
+import com.hk.prj.netflix_data_analyzer.csvdto.DeviceIPAddress;
+import com.hk.prj.netflix_data_analyzer.model.ViewingActivity;
+import com.hk.prj.netflix_data_analyzer.entity.UploadAnalysis;
+import com.hk.prj.netflix_data_analyzer.entity.UploadDetail;
 import com.hk.prj.netflix_data_analyzer.model.*;
-import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,6 +23,7 @@ import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -31,32 +35,50 @@ public class AnalysisService {
     @Value("${upload.path}")
     private String uploadPath;
 
-    private Path pathToZipFile;
+    private final DynamoDBService dynamoDBService;
+    private final UserService userService;
 
-    @PostConstruct
-    public void settingPathToZipFile() {
-        try(Stream<Path> files = Files.list(Path.of(uploadPath))) {
-            files.findFirst().ifPresent(path -> pathToZipFile = path);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public AnalysisService(DynamoDBService dynamoDBService, UserService userService) {
+        this.dynamoDBService = dynamoDBService;
+        this.userService = userService;
     }
 
     public void upload(MultipartFile file) {
-        pathToZipFile = Path.of(uploadPath + File.separator + System.currentTimeMillis()+"_"+ file.getOriginalFilename());
-        saveFile(file, pathToZipFile);
-        getFiles().forEach(System.out::println);
+        try {
+            Path pathToZipFile = Path.of(uploadPath + File.separator + System.currentTimeMillis() + "_" + file.getOriginalFilename());
+            saveFile(file, pathToZipFile);
+
+            String loggedInUser = userService.getLoggedInUsername();
+
+            List<Device> devices = getDevices(pathToZipFile);
+            AccountDetail accountDetail = getAccountDetail(pathToZipFile);
+            List<SpentByYear> paymentDetails = getPaymentDetails(pathToZipFile);
+            List<ViewingActivity> viewingActivityList = getViewingActivity(pathToZipFile);
+            UploadAnalysis uploadAnalysis = new UploadAnalysis(loggedInUser, accountDetail, devices, viewingActivityList, paymentDetails);
+            System.out.printf("FileProcessing done for user %s , file: %s\n", loggedInUser, pathToZipFile);
+
+            boolean saveUploadDetailFlag = dynamoDBService.saveUserUpload(new UploadDetail(UUID.randomUUID().toString(), loggedInUser, file.getOriginalFilename(), LocalDateTime.now()));
+            System.out.printf("UploadDetail save to db status for user %s is %s\n", loggedInUser, saveUploadDetailFlag);
+
+            boolean saveUploadAnalysisFlag = dynamoDBService.saveUploadAnalysis(uploadAnalysis);
+            System.out.printf("UploadAnalysis save to db status for user %s is %s\n", loggedInUser, saveUploadAnalysisFlag);
+
+            Files.delete(pathToZipFile);
+        }
+        catch (Exception e) {
+            throw new RuntimeException("File seems to be corrupted or issue in processing");
+        }
     }
 
-    public List<Device> getDevices() {
+    public List<Device> getDevices(Path pathToZipFile) {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
             Optional<Path> path = findPath(fs, Constants.DEVICES_FILE_PATH);
             if (path.isPresent()) {
                 List<String> lines = Files.readAllLines(path.get());
                 return IntStream.range(1, lines.size()).mapToObj(index -> processDeviceLine(lines.get(index)))
                         .distinct()
-                        .filter(d -> StringUtils.hasLength(d.lastUsedTime()))
-                        .sorted(Comparator.comparing(Device::profile).thenComparing(Device::deviceType).thenComparing(Device::lastUsedTime))
+                        .filter(d -> StringUtils.hasLength(d.getLastUsedTime()))
+                        .sorted(Comparator.comparing(Device::getProfile).thenComparing(Device::getDeviceType).thenComparing(Device::getLastUsedTime))
                         .collect(Collectors.toList());
             }
             else return Collections.emptyList();
@@ -77,23 +99,23 @@ public class AnalysisService {
         return new DeviceIPAddress(record[3], record[1], record[4], record[5], record[6], record[7]);
     }
 
-    public Map<String, List<DeviceIPAddress>> getIpAddressStreaming() {
-        try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
-            List<String> lines = Files.readAllLines(fs.getPath(Constants.IP_ADDRESS_STREAMING_PATH));
-            Map<String, List<DeviceIPAddress>> dataMap = IntStream.range(1, lines.size())
-                    .mapToObj(index -> processIpAddressStreamingLine(lines.get(index)))
-                    .collect(Collectors.groupingBy(DeviceIPAddress::getDevice));
-            dataMap.values().forEach(x -> x.sort(Comparator.comparing(DeviceIPAddress::getIpAddress).thenComparing(DeviceIPAddress::getTimestamp)));
-            return dataMap.values().stream()
-                    .map(x -> x.stream().collect(Collectors.groupingBy(DeviceIPAddress::getIpAddress)).values().stream().map(this::findFirstInEachList).toList())
-                    .flatMap(List::stream)
-                    .sorted(Comparator.comparing(DeviceIPAddress::getIpAddress))
-                    .collect(Collectors.groupingBy(DeviceIPAddress::getDevice));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Collections.emptyMap();
-        }
-    }
+//    public Map<String, List<DeviceIPAddress>> getIpAddressStreaming(Path pathToZipFile) {
+//        try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
+//            List<String> lines = Files.readAllLines(fs.getPath(Constants.IP_ADDRESS_STREAMING_PATH));
+//            Map<String, List<DeviceIPAddress>> dataMap = IntStream.range(1, lines.size())
+//                    .mapToObj(index -> processIpAddressStreamingLine(lines.get(index)))
+//                    .collect(Collectors.groupingBy(DeviceIPAddress::getDevice));
+//            dataMap.values().forEach(x -> x.sort(Comparator.comparing(DeviceIPAddress::getIpAddress).thenComparing(DeviceIPAddress::getTimestamp)));
+//            return dataMap.values().stream()
+//                    .map(x -> x.stream().collect(Collectors.groupingBy(DeviceIPAddress::getIpAddress)).values().stream().map(this::findFirstInEachList).toList())
+//                    .flatMap(List::stream)
+//                    .sorted(Comparator.comparing(DeviceIPAddress::getIpAddress))
+//                    .collect(Collectors.groupingBy(DeviceIPAddress::getDevice));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return Collections.emptyMap();
+//        }
+//    }
 
     private DeviceIPAddress findFirstInEachList(List<DeviceIPAddress> ipAddressStreamings) {
         ipAddressStreamings.sort(Comparator.comparing(DeviceIPAddress::getTimestamp));
@@ -110,7 +132,7 @@ public class AnalysisService {
         }
     }
 
-    public List<String> getFiles() {
+    public List<String> getFiles(Path pathToZipFile) {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
             try (Stream<Path> entries = Files.walk(fs.getPath("/"))) {
                 List<Path> filesInZip = entries.filter(Files::isRegularFile).toList();
@@ -123,7 +145,27 @@ public class AnalysisService {
         }
     }
 
-    public List<ViewedContentResponse> getWatchedContent() {
+    public List<WatchedSummary> getWatchedContent(List<ViewingActivity> viewingActivityList) {
+                return viewingActivityList.stream()
+                        .sorted(Comparator.comparing(ViewingActivity::getTitle))
+                        .collect(Collectors.groupingBy(ViewingActivity::getProfile))
+                        .entrySet().stream().map(e->{
+                            String profile = e.getKey();
+                            return e.getValue().stream()
+                                    .collect(Collectors.groupingBy(ViewingActivity::getYear))
+                                    .entrySet().stream().map(e1 -> {
+                                        String year = e1.getKey();
+                                        Integer watchedContent = e1.getValue().size();
+                                        Duration watchedDuration = Duration.ofSeconds(e1.getValue().stream().map(ViewingActivity::getDuration).map(Duration::getSeconds).reduce(Long::sum).orElse(0L));
+                                        return new WatchedSummary(profile, watchedContent, watchedDuration, DurationFormatUtils.formatDurationWords(watchedDuration.toMillis(), true, true), year);
+                                    }).toList();
+                        }).flatMap(List::stream)
+                        .sorted(Comparator.comparing(WatchedSummary::getDuration).reversed())
+                        .collect(Collectors.toList());
+    }
+ //&& v.getProfile().trim().equalsIgnoreCase(profile) && v.getYear().trim().equalsIgnoreCase(year)
+
+    public List<ViewingActivity> getViewingActivity(Path pathToZipFile) {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
             Optional<Path> path = findPath(fs, Constants.VIEWED_CONTENT_PATH);
             if (path.isPresent()) {
@@ -139,48 +181,7 @@ public class AnalysisService {
                             }
                         })
                         .distinct()
-                        .sorted(Comparator.comparing(ViewedContent::getTitle))
-                        .collect(Collectors.groupingBy(ViewedContent::getProfile))
-                        .entrySet().stream().map(e->{
-                            String profile = e.getKey();
-                            return e.getValue().stream()
-                                    .collect(Collectors.groupingBy(ViewedContent::getYear))
-                                    .entrySet().stream().map(e1 -> {
-                                        String year = e1.getKey();
-                                        Integer watchedContent = e1.getValue().size();
-                                        Duration watchedDuration = Duration.ofSeconds(e1.getValue().stream().map(ViewedContent::getDuration).map(Duration::getSeconds).reduce(Long::sum).orElse(0L));
-                                        return new ViewedContentResponse(profile, watchedContent, watchedDuration, DurationFormatUtils.formatDurationWords(watchedDuration.toMillis(), true, true), year);
-                                    }).toList();
-                        }).flatMap(List::stream)
-                        .sorted(Comparator.comparing(ViewedContentResponse::duration).reversed())
-                        .collect(Collectors.toList());
-                        //.collect(Collectors.groupingBy(ViewedContent::getProfile, Collectors.mapping(ViewedContent::getTitle, Collectors.toList())));
-            } else {
-                return Collections.emptyList();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Collections.emptyList();
-        }
-    }
-
-    public List<ViewedContent> getWatchedContentMap(String profile, String year) {
-        try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
-            Optional<Path> path = findPath(fs, Constants.VIEWED_CONTENT_PATH);
-            if (path.isPresent()) {
-                List<String> lines = Files.readAllLines(path.get());
-                List<String> splitContent = Arrays.asList("episode", "limited series", "season");
-                return IntStream.range(1, lines.size())
-                        .mapToObj(index -> processViewedContentLine(lines.get(index)))
-                        .filter(v -> !StringUtils.hasLength(v.getVideoType()) && v.getProfile().trim().equalsIgnoreCase(profile) && v.getYear().trim().equalsIgnoreCase(year))
-                        .peek(v -> {
-                            if (splitContent.stream().anyMatch(x -> v.getTitle().toLowerCase().contains(x))) {
-                                String title = v.getTitle().split(":")[0];
-                                v.setTitle(title);
-                            }
-                        })
-                        .distinct()
-                        .sorted(Comparator.comparing(ViewedContent::getTitle))
+                        .sorted(Comparator.comparing(ViewingActivity::getTitle))
                         .collect(Collectors.toList());
             } else {
                 return Collections.emptyList();
@@ -199,7 +200,7 @@ public class AnalysisService {
         }
     }
 
-    public List<SpentByYear> getPaymentDetails() {
+    public List<SpentByYear> getPaymentDetails(Path pathToZipFile) {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
             Optional<Path> path = findPath(fs, Constants.PAYMENTS_PATH);
             if (path.isPresent()) {
@@ -209,15 +210,15 @@ public class AnalysisService {
                         .filter(Objects::nonNull)
                         .toList();
                 Map<String, List<PaymentDetail>> groupByYear = paymentDetails.stream()
-                        .filter(v -> StringUtils.hasLength(v.priceAmt()))
-                        .filter(v -> v.txnType().contains("SALE") || v.txnType().contains("CAPTURE"))
-                        .filter(v -> v.pmtStatus().contains("APPROVED") && v.finalInvoiceResult().contains("SETTLED"))
-                        .collect(Collectors.groupingBy(PaymentDetail::year));
+                        .filter(v -> StringUtils.hasLength(v.getPriceAmt()))
+                        .filter(v -> v.getTxnType().contains("SALE") || v.getTxnType().contains("CAPTURE"))
+                        .filter(v -> v.getPmtStatus().contains("APPROVED") && v.getFinalInvoiceResult().contains("SETTLED"))
+                        .collect(Collectors.groupingBy(PaymentDetail::getYear));
                 return groupByYear.entrySet().stream().map(e-> {
                             Double spent = e.getValue().stream()
-                                    .map(v -> Double.valueOf(v.grossSaleAmt().replace("\"", "")))
+                                    .map(v -> Double.valueOf(v.getGrossSaleAmt().replace("\"", "")))
                             .reduce(Double::sum).orElse(0.0);
-                            return new SpentByYear(e.getKey(), String.format("%.2f %s", spent, e.getValue().get(0).currency()));
+                            return new SpentByYear(e.getKey(), String.format("%.2f %s", spent, e.getValue().get(0).getCurrency()));
                         }).toList();
             }
             else return Collections.emptyList();
@@ -239,7 +240,7 @@ public class AnalysisService {
         else return null;
     }
 
-    private ViewedContent processViewedContentLine(String line) {
+    private ViewingActivity processViewedContentLine(String line) {
         String[] record = line.split(",");
         Duration duration = convertStringToDuration(record[2]);
         String year;
@@ -248,7 +249,7 @@ public class AnalysisService {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
-        return new ViewedContent(record[0], record[1], duration, record[4], record[5], year);
+        return new ViewingActivity(record[0], record[1], duration, record[4], record[5], year);
     }
 
     private static String getYearFromDateTimeFormat(String dateString) throws ParseException {
@@ -282,7 +283,7 @@ public class AnalysisService {
         return Duration.ofSeconds(Long.parseLong(arr[0])*60*60 + Long.parseLong(arr[1])*60 + Long.parseLong(arr[2]));
     }
 
-    public AccountDetail getAccountDetail() {
+    public AccountDetail getAccountDetail(Path pathToZipFile) {
         try (FileSystem fs = FileSystems.newFileSystem(pathToZipFile)) {
             Optional<Path> path = findPath(fs, Constants.ACCOUNT_DETAILS_PATH);
             if (path.isPresent()) {
@@ -296,5 +297,17 @@ public class AnalysisService {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public UploadAnalysis getUploadAnalysis() {
+        UploadAnalysis uploadAnalysis = dynamoDBService.getUploadAnalysis(userService.getLoggedInUsername());
+        return Objects.requireNonNullElseGet(uploadAnalysis, () -> new UploadAnalysis("", null, Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
+    }
+
+    public List<ViewingActivity> getViewingActivityByProfileAndYear(String profile, String year) {
+        return getUploadAnalysis().getViewingActivityList().stream()
+                .filter(v-> v.getProfile().trim().equalsIgnoreCase(profile)
+                    && v.getYear().trim().equalsIgnoreCase(year))
+                .collect(Collectors.toList());
     }
 }
