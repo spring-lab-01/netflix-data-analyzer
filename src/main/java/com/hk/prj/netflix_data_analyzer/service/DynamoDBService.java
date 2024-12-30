@@ -2,6 +2,8 @@ package com.hk.prj.netflix_data_analyzer.service;
 
 import com.hk.prj.netflix_data_analyzer.entity.UploadAnalysis;
 import com.hk.prj.netflix_data_analyzer.entity.UploadDetail;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
@@ -15,16 +17,25 @@ import java.net.URI;
 
 @Component
 public class DynamoDBService {
-    Region region = Region.US_EAST_1;
+
+    Region dynamoDbRegion;
     private final String uploadDetailTable = "upload_detail";
     private final String uploadAnalysisTable = "upload_analysis";
 
-    private final DynamoDbEnhancedClient enhancedClient;
+    @Value("${dynamodb.url}")
+    private String dynamodbHostUrl;
 
-    public DynamoDBService() {
+    @Value("${dynamodb.region}")
+    private String dynamoDbRegionString;
+
+    private DynamoDbEnhancedClient enhancedClient;
+
+    @PostConstruct
+    public void init() {
+        dynamoDbRegion = Region.of(dynamoDbRegionString);
         DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
-                .region(region)
-                .endpointOverride(URI.create("http://localhost:8000"))
+                .region(dynamoDbRegion)
+                .endpointOverride(URI.create(dynamodbHostUrl))
                 .build();
         this.enhancedClient = DynamoDbEnhancedClient.builder()
                 .dynamoDbClient(dynamoDbClient)
